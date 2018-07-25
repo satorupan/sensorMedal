@@ -8,6 +8,10 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
 	<script src="js/chartjs-plugin-streaming.js"></script>
 	<style>
+		*:focus {
+			outline: none;
+		}
+
 		canvas {
 			-moz-user-select: none;
 			-webkit-user-select: none;
@@ -24,6 +28,10 @@
 			text-align: right;
 		}
 
+		#frame {
+			width: 90%;
+		}
+
 		#connectButton {
 
 			position: absolute;
@@ -37,6 +45,11 @@
 			background-color: red;
 			color: white;
 			border-width: 0;
+		}
+
+		#connectButton:hover {
+			background-color: brown;
+			cursor: pointer;
 		}
 
 		p {
@@ -58,10 +71,14 @@
 		<button type="button" class="btn" id="connectButton">接続</button>
 		<div id="log"></div>
 	</header>
-	<div style="width:90%;">
+	<div id="frame">
 		<canvas id="canvas"></canvas>
 	</div>
 	<script>
+		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //service
+		let BLE_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
+		let BLE_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the device
+
 		class WebBLE {
 			constructor(rxCharacteristic, txCharacteristic) {
 				this.messageSubscribers = [];
@@ -105,10 +122,6 @@
 				appendToLog("Sent >>>> " + kvstring);
 			}
 		}
-		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
-
-		let BLE_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
-		let BLE_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the device
 
 		let connectButton = document.getElementById("connectButton");
 		connectButton.onclick = connectClicked;
