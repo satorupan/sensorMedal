@@ -179,14 +179,23 @@
 	</div>
 
 	<script>
+		var myValue;
+
 		function getRandomInt(max) {
 			return Math.floor(Math.random() * Math.floor(max));
 		}
 
 		function setSceneRandom() {
-			var t = getRandomInt(7);
+			var t = getRandomInt(6);
 			var array = new Array('A', 'B', 'C', 'D', 'E', 'F', 'G');
-			setScene(array[t]);
+
+			if (array.indexOf(myValue) >= 0) {
+				// 存在する
+				array.splice(array.indexOf(myValue), 1); // 二番目から一つ削除
+
+			}
+			myValue = array[t];
+			setScene(myValue);
 
 		}
 
