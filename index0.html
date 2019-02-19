@@ -7,66 +7,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
 	<script src="js/chartjs-plugin-streaming.js"></script>
-	<script type="text/javascript" src="js/dat.gui.js"></script>
-
-	<style>
-		html body.preview {
-			margin: 0;
-			padding: 0;
-		}
-
-		iframe {
-			margin: 0;
-			padding: 0;
-			border: 0;
-		}
-
-		body.preview iframe {
-			width: 100%;
-			height: 100%;
-			position: absolute;
-		}
-
-		body.preview footer,
-		body.preview header {
-			display: none;
-		}
-
-		body.preview #canvas {
-			display: none !important;
-		}
-
-		footer {
-			position: fixed;
-			top: 0;
-			width: 100%;
-		}
-
-		footer ul {
-			list-style: none;
-			float: right;
-			position: absolute;
-			right: 250px;
-		}
-
-		footer ul li {
-			float: left;
-			width: 50px;
-			margin: 10px;
-		}
-
-		footer ul li button {
-			width: 50px;
-			height: 50px;
-			border-radius: 50px;
-			overflow: hidden;
-		}
-
-		header {
-
-			height: 80px;
-		}
-	</style>
 	<style>
 		*:focus {
 			outline: none;
@@ -122,7 +62,7 @@
 	</style>
 </head>
 
-<body id="body">
+<body>
 	<header>
 		<h1>SENSOR MEDAL</h1>
 		<p>
@@ -131,119 +71,9 @@
 		<button type="button" class="btn" id="connectButton">接続</button>
 		<div id="log"></div>
 	</header>
-
-	<iframe src="./movie/electricflower/electricflower.html" name="sample" width="200" height="150" id="sceneA"></iframe>
-
-	<iframe src="./movie/persistence/persistence.html" name="sample" width="200" height="150" id="sceneB"></iframe>
-
-	<iframe src="./movie/spacerocks/spacerocks.html" name="sample" width="200" height="150" id="sceneC"></iframe>
-
-	<iframe src="./movie/toon-shading/toon-shading.html" name="sample" width="200" height="150" id="sceneD"></iframe>
-
-	<iframe src="./movie/ape/" name="sample" width="200" height="150" id="sceneE"></iframe>
-	<iframe src="./movie/dog/" name="sample" width="200" height="150" id="sceneF"></iframe>
-	<iframe src="./movie/moshikame/" name="sample" width="200" height="150" id="sceneG"></iframe>
-
-
-	<footer>
-		<ul>
-			<li>
-				<button onclick="setScene('A')">A</button>
-			</li>
-			<li>
-				<button onclick="setScene('B')">B</button>
-			</li>
-			<li>
-				<button onclick="setScene('C')">C</button>
-			</li>
-			<li>
-				<button onclick="setScene('D')">D</button>
-			</li>
-			<li>
-				<button onclick="setScene('E')">E</button>
-			</li>
-			<li>
-				<button onclick="setScene('F')">F</button>
-			</li>
-			<li>
-				<button onclick="setScene('G')">G</button>
-			</li>
-			<li>
-				<button onclick="setScene('all')">ALL</button>
-			</li>
-		</ul>
-
-	</footer>
 	<div id="frame">
 		<canvas id="canvas"></canvas>
 	</div>
-
-	<script>
-		var myValue;
-
-		function getRandomInt(max) {
-			return Math.floor(Math.random() * Math.floor(max));
-		}
-
-		function setSceneRandom() {
-			var t = getRandomInt(6);
-			var array = new Array('A', 'B', 'C', 'D', 'E', 'F', 'G');
-
-			if (array.indexOf(myValue) >= 0) {
-				// 存在する
-				array.splice(array.indexOf(myValue), 1); // 二番目から一つ削除
-
-			}
-			myValue = array[t];
-			setScene(myValue);
-
-		}
-
-		function setScene(sceneId) {
-			console.log(sceneId);
-			document.querySelector('#sceneA').style.opacity = 0;
-			document.querySelector('#sceneB').style.opacity = 0;
-			document.querySelector('#sceneC').style.opacity = 0;
-			document.querySelector('#sceneD').style.opacity = 0;
-			document.querySelector('#sceneE').style.opacity = 0;
-			document.querySelector('#sceneF').style.opacity = 0;
-			document.querySelector('#sceneG').style.opacity = 0;
-
-			switch (sceneId) {
-				case "A":
-
-					document.querySelector('#sceneA').style.opacity = 1;
-					break;
-				case "B":
-					document.querySelector('#sceneB').style.opacity = 1;
-					break;
-				case "C":
-					document.querySelector('#sceneC').style.opacity = 1;
-					break;
-				case "D":
-					document.querySelector('#sceneD').style.opacity = 1;
-					break;
-				case "E":
-					document.querySelector('#sceneE').style.opacity = 1;
-					break;
-				case "F":
-					document.querySelector('#sceneF').style.opacity = 1;
-					break;
-				case "G":
-					document.querySelector('#sceneG').style.opacity = 1;
-					break;
-				default:
-					document.querySelector('#sceneA').style.opacity = 1;
-					document.querySelector('#sceneB').style.opacity = 1;
-					document.querySelector('#sceneC').style.opacity = 1;
-					document.querySelector('#sceneD').style.opacity = 1;
-					document.querySelector('#sceneE').style.opacity = 1;
-					document.querySelector('#sceneF').style.opacity = 1;
-					document.querySelector('#sceneG').style.opacity = 1;
-					break;
-			}
-		}
-	</script>
 	<script>
 		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //service
 		let BLE_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
@@ -273,10 +103,6 @@
 						sensordata.pressure = value.getInt16(18, true);
 
 						addData(sensordata);
-
-						if (ax > obj.ax) {
-							setSceneRandom();
-						}
 					});
 				});
 			}
@@ -543,57 +369,6 @@
 		let colorNames = Object.keys(chartColors);
 	</script>
 
-	<script type="text/javascript">
-		var obj = {
-			message: 'Hello World',
-			preview: false,
-
-			ax: 6.0,
-			ay: 6.0,
-			az: 6.0,
-			jx: 6.0,
-			jy: 6.0,
-			jz: 6.0,
-			speed: 5,
-
-			height: 10,
-			noiseStrength: 10.2,
-			growthSpeed: 0.2,
-
-			type: 'three',
-
-			explode: function () {
-				//alert('Bang!');
-				setSceneRandom()
-			},
-
-		};
-
-		var gui = new dat.gui.GUI();
-
-		//		gui.remember(obj);
-
-		gui.add(obj, 'message');
-		gui.add(obj, 'preview')
-			.listen()
-			.onFinishChange(
-				function (value) {
-					if (value) {
-						document.querySelector('body').classList.add('preview');
-					} else {
-						document.querySelector('body').classList.remove('preview');
-					}
-				}
-			);
-		gui.add(obj, 'explode');
-
-		gui.add(obj, 'ax').min(-10).max(10).step(0.25);
-		gui.add(obj, 'ay').min(-10).max(10).step(0.25);
-		gui.add(obj, 'az').min(-10).max(10).step(0.25);
-		gui.add(obj, 'jx').min(-10).max(10).step(0.25);
-		gui.add(obj, 'jy').min(-10).max(10).step(0.25);
-		gui.add(obj, 'jz').min(-10).max(10).step(0.25);
-	</script>
 </body>
 
 </html>
