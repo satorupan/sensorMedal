@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TEST</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer ul {
+            list-style: none;
+        }
+
+        footer ul li {
+            float: left;
+            width: 100px;
+            margin: 10px;
+        }
+
+        footer ul li button {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+    <script src="../pico.js/build/pico.js"></script>
+    <script>
+        function f1(t) {
+            return Math.sin(t * (0.001 + Math.sin(t >> 10))) * 64;
+        }
+
+        function f2(t) {
+            return (t >> 9) & ((t <<
+                5) | (Math.sin(t * 1.4142) * 3000)) + (t >> 3);
+        }
+
+        function oneliner() {
+            var t = 0,
+                dt = 8000 / Pico.sampleRate;
+            return function (e) {
+                var out = e.buffers;
+                for (var i = 0; i <
+                    e.bufferSize; i++) {
+                    out[0][i] = (f1(t | 0) % 256) / 512;
+                    out[1][i] = (f2(t | 0) % 256) / 512;
+                    t += dt;
+                }
+            };
+        }
+    </script>
+</head>
+
+<body>
+
+    <iframe src="../WebGLSamples/electricflower/electricflower.html" name="sample" width="200" height="150" id="sceneA"></iframe>
+
+    <iframe src="../WebGLSamples/persistence/persistence.html" name="sample" width="200" height="150" id="sceneB"></iframe>
+
+    <iframe src="../WebGLSamples/spacerocks/spacerocks.html" name="sample" width="200" height="150" id="sceneC"></iframe>
+
+    <iframe src="../WebGLSamples/toon-shading/toon-shading.html" name="sample" width="200" height="150" id="sceneD"></iframe>
+
+    <footer>
+        <ul>
+            <li>
+                <button onclick="setScene('A')">A</button>
+            </li>
+            <li>
+                <button onclick="setScene('B')">B</button>
+            </li>
+            <li>
+                <button onclick="setScene('C')">C</button>
+            </li>
+            <li>
+                <button onclick="setScene('D')">D</button>
+            </li>
+            <li>
+                <button onclick="setScene('E')">ALL</button>
+            </li>
+            <li>
+                <input type="text" name="m" value="HELLO!" placeholder="message" id="valueM" />
+            </li>
+        </ul>
+        <button type="button" class="btn" id="connectButton" style="float:right;">
+            <i class="fa fa-power-off">connectButtoF</i>
+        </button>
+        <button type="button" class="btn" id="helloButton" style="float:right;">
+            <i class="fa fa-power-off">Hello</i>
+        </button>
+    </footer>
+    <script>
+        function clicker() {
+            tmpID = Math.floor(Math.random() * (4));
+            menu = ['A', 'B', 'C', 'D', 'E'];
+            setScene(menu[tmpID]);
+        }
+
+        function setScene(sceneId) {
+            console.log(sceneId);
+            document.querySelector('#sceneA').style.opacity = 0;
+            document.querySelector('#sceneB').style.opacity = 0;
+            document.querySelector('#sceneC').style.opacity = 0;
+            document.querySelector('#sceneD').style.opacity = 0;
+
+            switch (sceneId) {
+                case "A":
+
+                    document.querySelector('#sceneA').style.opacity = 1;
+                    break;
+                case "B":
+                    document.querySelector('#sceneB').style.opacity = 1;
+                    break;
+                case "C":
+                    document.querySelector('#sceneC').style.opacity = 1;
+                    break;
+                case "D":
+                    document.querySelector('#sceneD').style.opacity = 1;
+                    break;
+                default:
+                    document.querySelector('#sceneA').style.opacity = 1;
+                    document.querySelector('#sceneB').style.opacity = 1;
+                    document.querySelector('#sceneC').style.opacity = 1;
+                    document.querySelector('#sceneD').style.opacity = 1;
+                    break;
+            }
+        }
+    </script>
+    <script>
+        sensordata = {};
+        //let MBIT_UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase(); //to send TO the microbit
+        let MBIT_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the microbit
+
+        //let MBIT_UART_RX_CHARACTERISTIC = '0179BBC0-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase(); //to send TO the microbit 
+        //let MBIT_UART_TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E'.toLowerCase(); //to receive data FROM the microbit
+
+        let MBIT_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the microbit
+        let MBIT_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the microbit
+
+
+        //chibi:bit BLE UUID
+        var BUTTON_SERVICE_UUID = 'e95d9882-251d-470a-a062-fa1922dfa9a8';
+        var BUTTON_A_CHARACTERISTIC_UUID = 'e95dda90-251d-470a-a062-fa1922dfa9a8';
+        var BUTTON_B_CHARACTERISTIC_UUID = 'e95dda91-251d-470a-a062-fa1922dfa9a8';
+
+        let connectButton = document.getElementById("connectButton");
+        let helloButton = document.getElementById("helloButton");
+        let logRegion = document.getElementById("log");
+        let logCount = 0;
+
+        var logValue = "logdata<br />";
+
+        function appendToLog(moreText) {
+            logCount += 1;
+            logValue += `${logCount}:  ${moreText}  <br>`;
+        }
+
+        function appendToLogTimer() {
+            if (logCount > 100) {
+                logCount -= 100;
+
+                logValue = "";
+            }
+            logRegion.innerHTML = logValue;
+
+
+            if (countA > 0) {
+                countA--;
+                if (countA == 0) {
+                    document.getElementById('valueA').value = 0;
+                }
+            }
+            if (countB > 0) {
+                countB--;
+                if (countB == 0) {
+
+                    document.getElementById('valueB').value = 0;
+                }
+            }
+        }
+        let ourMicrobitUART;
+        let bluetoothSearchOptions = {
+            filters: [{
+                //namePrefix: "BBC micro:bit", 
+                namePrefix: "ROHM RAW",
+            }],
+            optionalServices: [MBIT_UART_SERVICE]
+        };
+        class MicroBitUART {
+            constructor(rxCharacteristic, txCharacteristic) {
+                this.messageSubscribers = [];
+                this.rxCharacteristic = rxCharacteristic;
+                this.txCharacteristic = txCharacteristic;
+                this.decoder = new TextDecoder();
+                this.txCharacteristic.startNotifications().then(characteristic => {
+                    characteristic.addEventListener('characteristicvaluechanged', ev => {
+
+
+                        let value = (event.target).value;
+
+                        sensordata = {};
+                        sensordata.acceleration_x = value.getInt16(0, true);
+                        sensordata.acceleration_y = value.getInt16(2, true);
+                        sensordata.acceleration_z = value.getInt16(4, true);
+                        sensordata.magnetism_x = value.getInt16(6, true);
+                        sensordata.magnetism_y = value.getInt16(8, true);
+                        sensordata.magnetism_z = value.getInt16(10, true);
+                        sensordata.angular_x = value.getInt16(12, true);
+                        sensordata.angular_y = value.getInt16(14, true);
+                        sensordata.angular_z = value.getInt16(16, true);
+                        sensordata.pressure = value.getInt16(18, true);
+
+
+                        let valueAsString = new TextDecoder().decode(value);
+                        this.handleNewMessage(valueAsString);
+                    });
+                });
+            }
+            subscribeToMessages(receiver) {
+                this.messageSubscribers.push(receiver);
+            }
+            handleNewMessage(message) {
+                this.messageSubscribers.forEach(subscriber => {
+                    subscriber(message);
+                });
+            }
+            send(key, value) {
+                let kvstring = `${key}^${value}#`;
+                let encoder = new TextEncoder('utf-8');
+                let encoded = encoder.encode(kvstring);
+                this.rxCharacteristic.writeValue(encoded);
+                appendToLog("Sent >>>> " + kvstring);
+            }
+        }
+
+        function connectClicked(e) {
+            navigator.bluetooth.requestDevice(bluetoothSearchOptions).then(device => {
+                appendToLog(`Found:  ${device.name}`);
+                return device.gatt.connect();
+            }).then(server => {
+                appendToLog("...connected!");
+                return server.getPrimaryService(MBIT_UART_SERVICE);
+            }).then(service => {
+                return Promise.all([service.getCharacteristic(MBIT_UART_RX_CHARACTERISTIC),
+                    service.getCharacteristic(MBIT_UART_TX_CHARACTERISTIC)
+                ]);
+            }).then(rxandtx => {
+                let rx;
+                let tx;
+                [rx, tx] = rxandtx;
+                ourMicrobitUART = new MicroBitUART(rx, tx);
+                appendToLog("Made a UART!!");
+                startReadingFromUART(ourMicrobitUART);
+            }).catch(error => {
+                console.log(error);
+            });
+        }
+
+        function startReadingFromUART(mbit) {
+            mbit.subscribeToMessages((s) => {
+
+                var blob = new Blob([s], {
+                    type: 'application/octet-binary'
+                }); // pass a useful mime type here
+                var reader = new FileReader();
+                reader.addEventListener("loadend", function (e) {
+                    // reader.result contains the contents of blob as a typed array
+                    var data_view = new DataView(this.result);
+                    //console.log('hello');
+                    data_view.getInt16(0, true);
+
+                    sensordata.acceleration_x = data_view.getInt16(0, true);
+                    sensordata.acceleration_y = data_view.getInt16(2, true);
+                    sensordata.acceleration_z = data_view.getInt16(4, true);
+                    sensordata.magnetism_x = data_view.getInt16(6, true);
+                    sensordata.magnetism_y = data_view.getInt16(8, true);
+                    sensordata.magnetism_z = data_view.getInt16(10, true);
+                    sensordata.angular_x = data_view.getInt16(12, true);
+                    sensordata.angular_y = data_view.getInt16(14, true);
+                    sensordata.angular_z = data_view.getInt16(16, true);
+                    sensordata.pressure = data_view.getInt16(18, true);
+                    if (sensordata.acceleration_z < 1000) {
+                        //appendToLog("Read <<<< " + sensordata.acceleration_y);
+                        //     console.log("Read <<<< " + sensordata.acceleration_z);
+                        //  clicker();
+                    }
+                    // appendToLog("Read <<<< " + sensordata.acceleration_z);
+                });
+                reader.readAsArrayBuffer(blob);
+                //var data_view = new DataView(blob);
+            });
+            //mbit.subscribeToMessages(sayHelloBack);
+        }
+
+        function helloClicked(e) {
+            //ourMicrobitUART.send("hello#", "dude#");
+            var myMessage = document.getElementById('valueM').value + "#";
+            ourMicrobitUART.send(myMessage, "#");
+        }
+
+        function sayHelloBack(message) {
+            ourMicrobitUART.send("hello", "response");
+        }
+        //BEL切断処理
+        function disconnect() {
+            if (!bluetoothDevice || !bluetoothDevice.gatt.connected) return;
+            bluetoothDevice.gatt.disconnect();
+            alert("BLE接続を切断しました。")
+        }
+        connectButton.onclick = connectClicked;
+        helloButton.onclick = helloClicked;
+    </script>
+</body>
+
+</html>
