@@ -1,0 +1,597 @@
+﻿<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>sensor medal - streaming sample</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+	<script src="js/chartjs-plugin-streaming.js"></script>
+	<script type="text/javascript" src="js/dat.gui.js"></script>
+
+	<style>
+		html body.preview {
+			margin: 0;
+			padding: 0;
+		}
+
+		iframe {
+			margin: 0;
+			padding: 0;
+			border: 0;
+		}
+
+		body.preview iframe {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+		}
+
+		body.preview footer,
+		body.preview header {
+			display: none;
+		}
+
+		body.preview #canvas {
+			display: none !important;
+		}
+
+		footer {
+			position: fixed;
+			top: 0;
+			width: 100%;
+		}
+
+		footer ul {
+			list-style: none;
+			float: right;
+			position: absolute;
+			right: 250px;
+		}
+
+		footer ul li {
+			float: left;
+			width: 50px;
+			margin: 10px;
+		}
+
+		footer ul li button {
+			width: 50px;
+			height: 50px;
+			border-radius: 50px;
+			overflow: hidden;
+		}
+
+		header {
+
+			height: 80px;
+		}
+	</style>
+	<style>
+		*:focus {
+			outline: none;
+		}
+
+		canvas {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+
+		#log {
+			font-size: 12px;
+			padding: 10px;
+
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			text-align: right;
+		}
+
+		#frame {
+			width: 90%;
+		}
+
+		#connectButton {
+
+			position: absolute;
+			top: 0;
+			right: 50%;
+			width: 80px;
+			height: 80px;
+			border-radius: 50px;
+			padding: 10px;
+			margin: 10px;
+			background-color: red;
+			color: white;
+			border-width: 0;
+		}
+
+		#connectButton:hover {
+			background-color: brown;
+			cursor: pointer;
+		}
+
+		p {
+			margin: 0;
+			padding: 0;
+			font-size: 12px;
+			position: relative;
+			margin-top: -20px;
+		}
+	</style>
+</head>
+
+<body id="body">
+	<header>
+		<h1>SENSOR MEDAL</h1>
+		<p>
+			<a href="https://github.com/satorupan/sensorMedal">>project page</a>
+		</p>
+		<button type="button" class="btn" id="connectButton">接続</button>
+		<div id="log"></div>
+	</header>
+
+	<iframe src="./movie/electricflower/electricflower.html" name="sample" width="200" height="150" id="sceneA"></iframe>
+
+	<iframe src="./movie/persistence/persistence.html" name="sample" width="200" height="150" id="sceneB"></iframe>
+
+	<iframe src="./movie/spacerocks/spacerocks.html" name="sample" width="200" height="150" id="sceneC"></iframe>
+
+	<iframe src="./movie/toon-shading/toon-shading.html" name="sample" width="200" height="150" id="sceneD"></iframe>
+
+	<iframe src="./movie/ape/" name="sample" width="200" height="150" id="sceneE"></iframe>
+	<iframe src="./movie/dog/" name="sample" width="200" height="150" id="sceneF"></iframe>
+	<iframe src="./movie/moshikame/" name="sample" width="200" height="150" id="sceneG"></iframe>
+
+
+	<footer>
+		<ul>
+			<li>
+				<button onclick="setScene('A')">A</button>
+			</li>
+			<li>
+				<button onclick="setScene('B')">B</button>
+			</li>
+			<li>
+				<button onclick="setScene('C')">C</button>
+			</li>
+			<li>
+				<button onclick="setScene('D')">D</button>
+			</li>
+			<li>
+				<button onclick="setScene('E')">E</button>
+			</li>
+			<li>
+				<button onclick="setScene('F')">F</button>
+			</li>
+			<li>
+				<button onclick="setScene('G')">G</button>
+			</li>
+			<li>
+				<button onclick="setScene('all')">ALL</button>
+			</li>
+		</ul>
+
+	</footer>
+	<div id="frame">
+		<canvas id="canvas"></canvas>
+	</div>
+
+	<script>
+		var myValue;
+
+		function getRandomInt(max) {
+			return Math.floor(Math.random() * Math.floor(max));
+		}
+
+		function setSceneRandom() {
+			var t = getRandomInt(6);
+			var array = new Array('A', 'B', 'C', 'D', 'E', 'F', 'G');
+
+			if (array.indexOf(myValue) >= 0) {
+				// 存在する
+				array.splice(array.indexOf(myValue), 1); // 二番目から一つ削除
+
+			}
+			myValue = array[t];
+			setScene(myValue);
+
+		}
+
+		function setScene(sceneId) {
+			console.log(sceneId);
+			document.querySelector('#sceneA').style.opacity = 0;
+			document.querySelector('#sceneB').style.opacity = 0;
+			document.querySelector('#sceneC').style.opacity = 0;
+			document.querySelector('#sceneD').style.opacity = 0;
+			document.querySelector('#sceneE').style.opacity = 0;
+			document.querySelector('#sceneF').style.opacity = 0;
+			document.querySelector('#sceneG').style.opacity = 0;
+
+			switch (sceneId) {
+				case "A":
+
+					document.querySelector('#sceneA').style.opacity = 1;
+					break;
+				case "B":
+					document.querySelector('#sceneB').style.opacity = 1;
+					break;
+				case "C":
+					document.querySelector('#sceneC').style.opacity = 1;
+					break;
+				case "D":
+					document.querySelector('#sceneD').style.opacity = 1;
+					break;
+				case "E":
+					document.querySelector('#sceneE').style.opacity = 1;
+					break;
+				case "F":
+					document.querySelector('#sceneF').style.opacity = 1;
+					break;
+				case "G":
+					document.querySelector('#sceneG').style.opacity = 1;
+					break;
+				default:
+					document.querySelector('#sceneA').style.opacity = 1;
+					document.querySelector('#sceneB').style.opacity = 1;
+					document.querySelector('#sceneC').style.opacity = 1;
+					document.querySelector('#sceneD').style.opacity = 1;
+					document.querySelector('#sceneE').style.opacity = 1;
+					document.querySelector('#sceneF').style.opacity = 1;
+					document.querySelector('#sceneG').style.opacity = 1;
+					break;
+			}
+		}
+	</script>
+	<script>
+		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //service
+		let BLE_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
+		let BLE_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the device
+
+		class WebBLE {
+			constructor(rxCharacteristic, txCharacteristic) {
+				this.messageSubscribers = [];
+				this.rxCharacteristic = rxCharacteristic;
+				this.txCharacteristic = txCharacteristic;
+				this.decoder = new TextDecoder();
+				this.txCharacteristic.startNotifications().then(characteristic => {
+					characteristic.addEventListener('characteristicvaluechanged', ev => {
+
+
+						let sensordata = {};
+						let value = (event.target).value;
+						sensordata.acceleration_x = value.getInt16(0, true);
+						sensordata.acceleration_y = value.getInt16(2, true);
+						sensordata.acceleration_z = value.getInt16(4, true);
+						sensordata.magnetism_x = value.getInt16(6, true);
+						sensordata.magnetism_y = value.getInt16(8, true);
+						sensordata.magnetism_z = value.getInt16(10, true);
+						sensordata.angular_x = value.getInt16(12, true);
+						sensordata.angular_y = value.getInt16(14, true);
+						sensordata.angular_z = value.getInt16(16, true);
+						sensordata.pressure = value.getInt16(18, true);
+
+						addData(sensordata);
+
+						if (ax > obj.ax) {
+							setSceneRandom();
+						}
+					});
+				});
+			}
+			subscribeToMessages(receiver) {
+				this.messageSubscribers.push(receiver);
+			}
+			handleNewMessage(message) {
+				this.messageSubscribers.forEach(subscriber => {
+					subscriber(message);
+				});
+			}
+			send(key, value) {
+				let kvstring = `${key}^${value}#`;
+				let encoder = new TextEncoder('utf-8');
+				let encoded = encoder.encode(kvstring);
+				this.rxCharacteristic.writeValue(encoded);
+				appendToLog("Sent >>>> " + kvstring);
+			}
+		}
+
+		let connectButton = document.getElementById("connectButton");
+		connectButton.onclick = connectClicked;
+
+		let logCount = 0;
+		var logValue = "logdata<br />";
+
+		function appendToLog(moreText) {
+			document.getElementById('log').innerHTML += moreText + "<br />";
+		}
+
+		let myBLE;
+		let bluetoothSearchOptions = {
+			filters: [{
+			}]
+		};
+
+		function connectClicked(e) {
+			navigator.bluetooth.requestDevice(bluetoothSearchOptions).then(device => {
+				appendToLog(`Found:  ${device.name}`);
+				return device.gatt.connect();
+			}).then(server => {
+				appendToLog("...connected!");
+				return server.getPrimaryService(BLE_UART_SERVICE);
+			}).then(service => {
+				return Promise.all([service.getCharacteristic(BLE_UART_RX_CHARACTERISTIC),
+					service.getCharacteristic(BLE_UART_TX_CHARACTERISTIC)
+				]);
+			}).then(rxandtx => {
+				let rx;
+				let tx;
+				[rx, tx] = rxandtx;
+				myBLE = new WebBLE(rx, tx);
+				appendToLog("Made a UART!!");
+			}).catch(error => {
+				console.log(error);
+			});
+		}
+
+		function randomScalingFactor() {
+			return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+		}
+
+		function addData(sensordata) {
+
+			config.data.datasets[0].data.push({
+				x: moment(),
+				y: sensordata.pressure
+			});
+			config.data.datasets[1].data.push({
+				x: moment(),
+				y: sensordata.acceleration_x
+			});
+			config.data.datasets[2].data.push({
+				x: moment(),
+				y: sensordata.acceleration_y
+			});
+			config.data.datasets[3].data.push({
+				x: moment(),
+				y: sensordata.acceleration_z
+			});
+			config.data.datasets[4].data.push({
+				x: moment(),
+				y: sensordata.magnetism_x
+			});
+			config.data.datasets[5].data.push({
+				x: moment(),
+				y: sensordata.magnetism_y
+			});
+			config.data.datasets[6].data.push({
+				x: moment(),
+				y: sensordata.magnetism_z
+			});
+			config.data.datasets[7].data.push({
+				x: moment(),
+				y: sensordata.angular_x
+			});
+			config.data.datasets[8].data.push({
+				x: moment(),
+				y: sensordata.angular_y
+			});
+			config.data.datasets[9].data.push({
+				x: moment(),
+				y: sensordata.angular_z
+			});
+		}
+
+		let chartColors = {
+			red: 'rgb(255, 99, 132)',
+			orange: 'rgb(255, 159, 64)',
+			yellow: 'rgb(255, 205, 86)',
+			green: 'rgb(75, 192, 192)',
+			blue: 'rgb(54, 162, 235)',
+			purple: 'rgb(153, 102, 255)',
+			grey: 'rgb(201, 203, 207)'
+		};
+
+		let color = Chart.helpers.color;
+		let config = {
+			type: 'line',
+			data: {
+				datasets: [{
+					label: 'p',
+					backgroundColor: color(chartColors.gray).alpha(0.5).rgbString(),
+					borderColor: chartColors.gray,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					lineTension: 0,
+					data: []
+				}, {
+					label: 'ax',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'ay',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 1],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'az',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jx',
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jy',
+					borderDash: [8, 1],
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jz',
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'mx',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'my',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 1],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'mz',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: 'Line chart (hotizontal scroll) sample'
+				},
+				scales: {
+					xAxes: [{
+						type: 'realtime',
+						display: true,
+					}],
+					yAxes: [{
+						type: 'linear',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'value'
+						}
+					}]
+				},
+				tooltips: {
+					mode: 'nearest',
+					intersect: false
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: false
+				},
+				plugins: {
+					streaming: {
+						duration: 20000,
+						refresh: 100,
+						delay: 200
+					}
+				}
+			}
+		};
+
+		window.onload = function () {
+			let ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+		};
+
+		let colorNames = Object.keys(chartColors);
+	</script>
+
+	<script type="text/javascript">
+		var obj = {
+			message: 'Hello World',
+			preview: false,
+
+			ax: 6.0,
+			ay: 6.0,
+			az: 6.0,
+			jx: 6.0,
+			jy: 6.0,
+			jz: 6.0,
+			speed: 5,
+
+			height: 10,
+			noiseStrength: 10.2,
+			growthSpeed: 0.2,
+
+			type: 'three',
+
+			explode: function () {
+				//alert('Bang!');
+				setSceneRandom()
+			},
+
+		};
+
+		var gui = new dat.gui.GUI();
+
+		//		gui.remember(obj);
+
+		gui.add(obj, 'message');
+		gui.add(obj, 'preview')
+			.listen()
+			.onFinishChange(
+				function (value) {
+					if (value) {
+						document.querySelector('body').classList.add('preview');
+					} else {
+						document.querySelector('body').classList.remove('preview');
+					}
+				}
+			);
+		gui.add(obj, 'explode');
+
+		gui.add(obj, 'ax').min(-10).max(10).step(0.25);
+		gui.add(obj, 'ay').min(-10).max(10).step(0.25);
+		gui.add(obj, 'az').min(-10).max(10).step(0.25);
+		gui.add(obj, 'jx').min(-10).max(10).step(0.25);
+		gui.add(obj, 'jy').min(-10).max(10).step(0.25);
+		gui.add(obj, 'jz').min(-10).max(10).step(0.25);
+	</script>
+</body>
+
+</html>
