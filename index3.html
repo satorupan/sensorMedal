@@ -106,8 +106,9 @@
 			}
 		}
 		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
+		let BLE_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
 
-		let BLE_UART_RX_CHARACTERISTIC = '0179BBC2-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
+		let BLE_CHARACTERISTIC = '00002a37-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
 		let BLE_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the device
 
 		let connectButton = document.getElementById("connectButton");
@@ -139,10 +140,9 @@
 				return device.gatt.connect();
 			}).then(server => {
 				appendToLog("...connected!");
-				return server.getPrimaryService(BLE_UART_SERVICE);
+				return server.getPrimaryService(BLE_SERVICE);
 			}).then(service => {
-				return Promise.all([service.getCharacteristic(BLE_UART_RX_CHARACTERISTIC),
-					service.getCharacteristic(BLE_UART_TX_CHARACTERISTIC)
+				return Promise.all([service.getCharacteristic(BLE_CHARACTERISTIC)
 				]);
 			}).then(rxandtx => {
 				let rx;
