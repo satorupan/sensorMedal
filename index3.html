@@ -128,7 +128,9 @@
 			optionalServices: [BLE_UART_SERVICE]
 		};
 		bluetoothSearchOptions = {
-			acceptAllDevices: true
+			filters: [{
+				namePrefix: "mi",
+			}]
 		};
 
 		function connectClicked(e) {
