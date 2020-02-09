@@ -1,0 +1,453 @@
+﻿<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>sensor medal - streaming sample</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+	<script src="js/chartjs-plugin-streaming.js"></script>
+	<style>
+		canvas {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+
+		#log {
+			font-size: 12px;
+			padding: 10px;
+
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			text-align: right;
+		}
+
+		#connectButton {
+
+			position: absolute;
+			top: 0;
+			right: 50%;
+			width: 80px;
+			height: 80px;
+			border-radius: 50px;
+			padding: 10px;
+			margin: 10px;
+			background-color: red;
+			color: white;
+			border-width: 0;
+		}
+
+		p {
+			margin: 0;
+			padding: 0;
+			font-size: 12px;
+			position: relative;
+			margin-top: -20px;
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<h1>SENSOR MEDAL</h1>
+		<p>
+			<a href="https://github.com/satorupan/sensormedal">>project page</a>
+		</p>
+		<button type="button" class="btn" id="connectButton">接続</button>
+		<div id="log"></div>
+	</header>
+	<div style="width:90%;">
+		<canvas id="canvas"></canvas>
+	</div>
+
+
+	<div class="demo-container">
+		<button onclick="playHTMLSound(0);">HTML</button>
+		<button onclick="webAudioSound();">SoundJS</button>
+		<button onclick="playHTMLSound(1);">Sound1</button>
+		<button onclick="playHTMLSound(2);">Sound2</button>
+		<button onclick="playHTMLSound(3);">Sound3</button>
+	</div>
+
+	<!-- <audio id="sound0" src="https://s3.amazonaws.com/nrf-codepen-assets/snare-2.mp3" preload="auto"></audio> -->
+	<!-- <audio id="sound1" src="https://s3.amazonaws.com/nrf-codepen-assets/snare-2.mp3" preload="auto"></audio> -->
+	<!-- <audio id="sound2" src="https://s3.amazonaws.com/nrf-codepen-assets/snare-2.mp3" preload="auto"></audio> -->
+	<audio id="sound0" src="https://satorupan.github.io/sensorMedal/asset/sound/sound1.mp3" preload="auto"></audio><audio id="sound1" src="https://satorupan.github.io/sensorMedal/asset/sound/sound2.mp3" preload="auto"></audio><audio id="sound2" src="https://satorupan.github.io/sensorMedal/asset/sound/sound3.mp3" preload="auto"></audio><audio id="sound3" src="https://satorupan.github.io/sensorMedal/asset/sound/sound4.mp3" preload="auto"></audio>
+	<script src='https://code.createjs.com/soundjs-0.6.2.min.js'></script>
+	<script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+
+
+
+	<script>
+		class WebBLE {
+			constructor(rxCharacteristic, txCharacteristic) {
+				this.messageSubscribers = [];
+				this.rxCharacteristic = rxCharacteristic;
+				this.txCharacteristic = txCharacteristic;
+				this.decoder = new TextDecoder();
+				this.txCharacteristic.startNotifications().then(characteristic => {
+					characteristic.addEventListener('characteristicvaluechanged', ev => {
+
+
+						let sensordata = {};
+						let value = (event.target).value;
+						sensordata.acceleration_x = value.getInt16(0, true);
+						sensordata.acceleration_y = value.getInt16(2, true);
+						sensordata.acceleration_z = value.getInt16(4, true);
+						sensordata.magnetism_x = value.getInt16(6, true);
+						sensordata.magnetism_y = value.getInt16(8, true);
+						sensordata.magnetism_z = value.getInt16(10, true);
+						sensordata.angular_x = value.getInt16(12, true);
+						sensordata.angular_y = value.getInt16(14, true);
+						sensordata.angular_z = value.getInt16(16, true);
+						sensordata.pressure = value.getInt16(18, true);
+
+						addData(sensordata);
+					});
+				});
+			}
+			subscribeToMessages(receiver) {
+				this.messageSubscribers.push(receiver);
+			}
+			handleNewMessage(message) {
+				this.messageSubscribers.forEach(subscriber => {
+					subscriber(message);
+				});
+			}
+			send(key, value) {
+				let kvstring = `${key}^${value}#`;
+				let encoder = new TextEncoder('utf-8');
+				let encoded = encoder.encode(kvstring);
+				this.rxCharacteristic.writeValue(encoded);
+				appendToLog("Sent >>>> " + kvstring);
+			}
+		}
+
+		let BASE = "0000%s-0000-1000-8000-00805f9b34fb"
+
+		let CHARACTERISTIC_HZ = "00000002-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_SENSOR = "00000001-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_AUTH = "00000009-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_HEART_RATE_MEASURE = "00002a37-0000-1000-8000-00805f9b34fb"
+		let CHARACTERISTIC_HEART_RATE_CONTROL = "00002a39-0000-1000-8000-00805f9b34fb"
+		let CHARACTERISTIC_ALERT = "00002a06-0000-1000-8000-00805f9b34fb"
+		let CHARACTERISTIC_CUSTOM_ALERT = "00002a46-0000-1000-8000-00805f9b34fb"
+		let CHARACTERISTIC_BATTERY = "00000006-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_STEPS = "00000007-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_LE_PARAMS = BASE % "FF09"
+		let CHARACTERISTIC_REVISION = 0x2a28
+		let CHARACTERISTIC_SERIAL = 0x2a25
+		let CHARACTERISTIC_HRDW_REVISION = 0x2a27
+		let CHARACTERISTIC_CONFIGURATION = "00000003-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_DEVICEEVENT = "00000010-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_CHUNKED_TRANSFER = "00000020-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_MUSIC_NOTIFICATION = "00000010-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_CURRENT_TIME = BASE % '2A2B'
+		let CHARACTERISTIC_AGE = BASE % '2A80'
+		let CHARACTERISTIC_USER_SETTINGS = "00000008-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_ACTIVITY_DATA = "00000005-0000-3512-2118-0009af100700"
+		let CHARACTERISTIC_FETCH = "00000004-0000-3512-2118-0009af100700"
+
+
+		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
+		let BLE_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
+
+		//let BLE_CHARACTERISTIC = '00002a37-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
+		let BLE_CHARACTERISTIC = '00002a37-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
+
+		let BLE_UART_TX_CHARACTERISTIC = '0179BBC3-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to receive data FROM the device
+
+		let connectButton = document.getElementById("connectButton");
+		connectButton.onclick = connectClicked;
+
+		let logCount = 0;
+		var logValue = "logdata<br />";
+
+		function appendToLog(moreText) {
+			document.getElementById('log').innerHTML += moreText + "<br />";
+		}
+
+		let myBLE;
+		let bluetoothSearchOptions = {
+			filters: [{
+				namePrefix: "ROHM RAW",
+			}],
+			optionalServices: [BLE_UART_SERVICE]
+		};
+		bluetoothSearchOptions = {
+			filters: [{
+				namePrefix: "Mi Smart Band 4",
+			}]
+		};
+
+		function connectClicked(e) {
+			navigator.bluetooth.requestDevice(bluetoothSearchOptions).then(device => {
+				appendToLog(`Found:  ${device.name}`);
+				return device.gatt.connect();
+			}).then(server => {
+				appendToLog("...connected!");
+				return server.getPrimaryService(BLE_SERVICE);
+			}).then(service => {
+				return Promise.all([service.getCharacteristic(BLE_CHARACTERISTIC)
+				]);
+			}).then(rxandtx => {
+				let rx;
+				let tx;
+				[rx, tx] = rxandtx;
+				myBLE = new WebBLE(rx, tx);
+				appendToLog("Made a UART!!");
+			}).catch(error => {
+				console.log(error);
+			});
+		}
+
+		function randomScalingFactor() {
+			return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+		}
+
+		function addData(sensordata) {
+
+			config.data.datasets[0].data.push({
+				x: moment(),
+				y: sensordata.pressure
+			});
+			config.data.datasets[1].data.push({
+				x: moment(),
+				y: sensordata.acceleration_x
+			});
+			config.data.datasets[2].data.push({
+				x: moment(),
+				y: sensordata.acceleration_y
+			});
+			config.data.datasets[3].data.push({
+				x: moment(),
+				y: sensordata.acceleration_z
+			});
+			config.data.datasets[4].data.push({
+				x: moment(),
+				y: sensordata.magnetism_x
+			});
+			config.data.datasets[5].data.push({
+				x: moment(),
+				y: sensordata.magnetism_y
+			});
+			config.data.datasets[6].data.push({
+				x: moment(),
+				y: sensordata.magnetism_z
+			});
+			config.data.datasets[7].data.push({
+				x: moment(),
+				y: sensordata.angular_x
+			});
+			config.data.datasets[8].data.push({
+				x: moment(),
+				y: sensordata.angular_y
+			});
+			config.data.datasets[9].data.push({
+				x: moment(),
+				y: sensordata.angular_z
+			});
+		}
+
+		let chartColors = {
+			red: 'rgb(255, 99, 132)',
+			orange: 'rgb(255, 159, 64)',
+			yellow: 'rgb(255, 205, 86)',
+			green: 'rgb(75, 192, 192)',
+			blue: 'rgb(54, 162, 235)',
+			purple: 'rgb(153, 102, 255)',
+			grey: 'rgb(201, 203, 207)'
+		};
+
+		let color = Chart.helpers.color;
+		let config = {
+			type: 'line',
+			data: {
+				datasets: [{
+					label: 'p',
+					backgroundColor: color(chartColors.gray).alpha(0.5).rgbString(),
+					borderColor: chartColors.gray,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					lineTension: 0,
+					data: []
+				}, {
+					label: 'ax',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'ay',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 1],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'az',
+					backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
+					borderColor: chartColors.red,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jx',
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jy',
+					borderDash: [8, 1],
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'jz',
+					backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+					borderColor: chartColors.green,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'mx',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'my',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 1],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}, {
+					label: 'mz',
+					backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+					borderColor: chartColors.blue,
+					borderWidth: 1,
+					pointBorderWidth: 0,
+					fill: false,
+					borderDash: [8, 4],
+					cubicInterpolationMode: 'monotone',
+					data: []
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: 'Line chart (hotizontal scroll) sample'
+				},
+				scales: {
+					xAxes: [{
+						type: 'realtime',
+						display: true,
+					}],
+					yAxes: [{
+						type: 'linear',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'value'
+						}
+					}]
+				},
+				tooltips: {
+					mode: 'nearest',
+					intersect: false
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: false
+				},
+				plugins: {
+					streaming: {
+						duration: 20000,
+						refresh: 100,
+						delay: 200
+					}
+				}
+			}
+		};
+
+		window.onload = function () {
+			let ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+		};
+
+		let colorNames = Object.keys(chartColors);
+	</script>
+	<script>
+		/* Downloaded from https://www.codeseek.co/ */
+		// var soundSnare = "Snare";
+		var bell = "Bell";
+
+		// createjs.Sound.registerSound("https://s3.amazonaws.com/nrf-codepen-assets/snare-2.mp3", soundSnare);
+		createjs.Sound.registerSound("https://res.cloudinary.com/chartman4/video/upload/v1499897861/BellSound_csbr1a.mp3", bell);
+
+		function playHTMLSound(soundID) {
+			switch (soundID) {
+				case 0: {
+					document.getElementById("sound0").load();
+					document.getElementById("sound0").play();
+					break;
+				}
+				case 1: {
+					document.getElementById("sound1").load();
+					document.getElementById("sound1").play();
+					break;
+				}
+				case 2: {
+					document.getElementById("sound2").load();
+					document.getElementById("sound2").play();
+					break;
+				}
+				case 3: {
+					document.getElementById("sound3").load();
+					document.getElementById("sound3").play();
+					break;
+				}
+
+			}
+		}
+
+		function webAudioSound() {
+			// createjs.Sound.play(soundSnare);
+			createjs.Sound.play(bell);
+
+		}
+	</script>
+</body>
+
+</html>
