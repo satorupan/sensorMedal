@@ -59,7 +59,7 @@
 		<div id="log"></div>
 	</header>
 	<div style="width:90%;">
-		<canvas id="canvas"></canvas>
+		<canvas id="canvasG"></canvas>
 	</div>
 
 
@@ -465,7 +465,7 @@
 		};
 
 		window.onload = function () {
-			let ctx = document.getElementById('canvas').getContext('2d');
+			let ctx = document.getElementById('canvasG').getContext('2d');
 			window.myLine = new Chart(ctx, config);
 		};
 
