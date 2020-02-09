@@ -64,11 +64,11 @@
 
 
 	<div class="demo-container">
-		<button onclick="playHTMLSound(0);">HTML</button>
+		<button onclick="playHTMLSound(0);" id="bt1">HTML</button>
 		<button onclick="webAudioSound();">SoundJS</button>
-		<button onclick="playHTMLSound(1);">Sound1</button>
-		<button onclick="playHTMLSound(2);">Sound2</button>
-		<button onclick="playHTMLSound(3);">Sound3</button>
+		<button onclick="playHTMLSound(1);" id="bt2">Sound1</button>
+		<button onclick="playHTMLSound(2);" id="bt3">Sound2</button>
+		<button onclick="playHTMLSound(3);" id="bt4">Sound3</button>
 	</div>
 
 	<!-- <audio id="sound0" src="https://s3.amazonaws.com/nrf-codepen-assets/snare-2.mp3" preload="auto"></audio> -->
@@ -117,7 +117,7 @@
 		</h4>
 	</div>
 
-	<div class="container">
+	<div class="container" style="position:fixed;z-index:-1;">
 		<div class="button-group">
 			<button id="v3">YOLOv3 (236MB)</button>
 			<button id="v1tiny">Tiny YOLOv1 (60MB)</button>
@@ -474,8 +474,18 @@
 		let colorNames = Object.keys(chartColors);
 	</script>
 	<script>
+		var i = 0;
 		function helloWorld(persent,title) {
-			console.log(persent+","+title);
+			console.log(persent + "," + title);
+
+			i++;
+
+			if (i>10) {
+
+				document.getElementById("bt4").click();
+				i = 0;
+			}
+
 		}
 
 	</script>
@@ -519,6 +529,9 @@
 			createjs.Sound.play(bell);
 
 		}
+		window.onload = function () {
+			document.getElementById("v3tiny").click();
+		};
 	</script>
 </body>
 
