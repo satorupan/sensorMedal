@@ -219,6 +219,7 @@
 		let BLE_UART_SERVICE = '0179BBC0-0000-0100-8000-00805F9B34FB'.toLowerCase(); //to send TO the device
 		let BLE_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
 
+
 		//let BLE_CHARACTERISTIC = '00002a37-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
 		let BLE_CHARACTERISTIC = '00002a37-0000-1000-8000-00805f9b34fb'.toLowerCase(); //to send TO the device
 
@@ -234,18 +235,33 @@
 			document.getElementById('log').innerHTML += moreText + "<br />";
 		}
 
+		function handleNotifications(event) {
+			let value = event.target.value;
+			let a = [];
+			// Convert raw data bytes to hex values just for the sake of showing something.
+			// In the "real" world, you'd use data.getUint8, data.getUint16 or even
+			// TextDecoder to process raw data bytes.
+			for (let i = 0; i < value.byteLength; i++) {
+				a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+			}
+			log('> ' + a.join(' '));
+		}
+
 		let myBLE;
+		/*
 		let bluetoothSearchOptions = {
 			filters: [{
 				namePrefix: "ROHM RAW",
 			}],
 			optionalServices: [BLE_UART_SERVICE]
 		};
-		bluetoothSearchOptions = {
-			filters: [{
+		*/
+		let bluetoothSearchOptions = {
+			filters: [{ services: [BLE_SERVICE] },{
 				namePrefix: "Mi Smart Band 4",
 			}]
 		};
+		//			optionalServices: [CHARACTERISTIC_HEART_RATE_MEASURE, CHARACTERISTIC_HEART_RATE_CONTROL, CHARACTERISTIC_HZ, CHARACTERISTIC_SENSOR, CHARACTERISTIC_AUTH, CHARACTERISTIC_BATTERY]
 
 		function connectClicked(e) {
 			navigator.bluetooth.requestDevice(bluetoothSearchOptions).then(device => {
@@ -255,14 +271,17 @@
 				appendToLog("...connected!");
 				return server.getPrimaryService(BLE_SERVICE);
 			}).then(service => {
-				return Promise.all([service.getCharacteristic(BLE_CHARACTERISTIC)
+				return Promise.all([service.getCharacteristic(CHARACTERISTIC_HEART_RATE_MEASURE)
 				]);
-			}).then(rxandtx => {
-				let rx;
-				let tx;
-				[rx, tx] = rxandtx;
-				myBLE = new WebBLE(rx, tx);
-				appendToLog("Made a UART!!");
+				}).then(characteristic => {
+				
+    myCharacteristic = characteristic[0];
+    return myCharacteristic.startNotifications().then(_ => {
+      log('> Notifications started');
+      myCharacteristic.addEventListener('characteristicvaluechanged',
+			handleNotifications);
+
+	});
 			}).catch(error => {
 				console.log(error);
 			});
