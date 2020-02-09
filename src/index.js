@@ -181,6 +181,6 @@ function drawBoxes(boxes) {
 
     rect.appendChild(text);
 	  rects.appendChild(rect);
-	  helloWorld(text,rect);
+	  helloWorld(`${box['score'].toFixed(2)}`, `${ box['class'] }`);
   });
 }
