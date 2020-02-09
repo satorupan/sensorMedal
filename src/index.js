@@ -180,6 +180,7 @@ function drawBoxes(boxes) {
     text.style.color = colors[box['class']];
 
     rect.appendChild(text);
-    rects.appendChild(rect);
+	  rects.appendChild(rect);
+	  helloWorld(text,rect);
   });
 }
